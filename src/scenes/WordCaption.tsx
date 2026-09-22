@@ -9,6 +9,11 @@ type Props = {
 	emphasis: boolean;
 };
 
+// Apple's kinetic type never carries loose commas/periods on screen —
+// punctuation is a reading-speed cue for prose, not part of a display word.
+// Keep "!" since it's expressive (Woohoo!), drop everything else.
+const cleanForDisplay = (word: string) => word.replace(/[.,]/g, '');
+
 const FONT_STACK =
 	"-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif";
 
@@ -60,7 +65,7 @@ export const WordCaption: React.FC<Props> = ({word, startFrame, endFrame, emphas
 				whiteSpace: 'nowrap',
 			}}
 		>
-			{word}
+			{cleanForDisplay(word)}
 		</div>
 	);
 };

@@ -7,9 +7,9 @@ export const GlowPulse: React.FC = () => {
 	const {fps} = useVideoConfig();
 	const t = frame / fps;
 
-	const pulse = beatPulseAt(t); // 0..1, spikes on every detected beat
-	const scale = 1 + pulse * 0.35;
-	const opacity = 0.12 + pulse * 0.28;
+	const pulse = beatPulseAt(t, 0.45); // slower decay → breathing, not strobing
+	const scale = 1 + pulse * 0.08;
+	const opacity = 0.08 + pulse * 0.1;
 
 	return (
 		<AbsoluteFill style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>

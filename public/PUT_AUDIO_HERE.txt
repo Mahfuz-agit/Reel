@@ -1,0 +1,9 @@
+এখানে তোমার আসল অডিও ফাইলটি রাখো এবং নাম দাও: audio.mp3
+
+path: public/audio.mp3
+
+কারণ: audio_data.json শুধু analysis (transcript/rhythm/energy) দিয়েছে,
+আসল সাউন্ড ফাইল দেয়নি। ভিডিও রেন্ডার করতে আসল mp3/wav লাগবে,
+আর তার টাইমিং অবশ্যই এই JSON-এর টাইমিং এর সাথে মিলতে হবে।
+
+এই ফাইলটি (PUT_AUDIO_HERE.txt) audio.mp3 বসানোর পর মুছে ফেলতে পারো।

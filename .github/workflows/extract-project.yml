@@ -42,10 +42,6 @@ jobs:
 
           unzip -o "$ZIP_FILE" -d /tmp/project-extract
 
-          echo ""
-          echo "Extracted files:"
-          find /tmp/project-extract -maxdepth 3 -print
-
       - name: Copy project into repository
         shell: bash
         run: |
@@ -59,21 +55,18 @@ jobs:
 
           if [ "${#ITEMS[@]}" -eq 1 ] && [ -d "${ITEMS[0]}" ]; then
             SOURCE="${ITEMS[0]}"
-            echo "Detected top-level project folder:"
-            echo "$SOURCE"
           else
             SOURCE="$EXTRACTED"
-            echo "Using extracted directory directly."
           fi
 
-          echo ""
           echo "Copying project files..."
 
           rsync -av \
             "$SOURCE"/ \
             ./ \
             --exclude='.git/' \
-            --exclude='project.zip'
+            --exclude='project.zip' \
+            --exclude='.github/workflows/'
 
       - name: Show final repository
         run: |

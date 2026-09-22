@@ -1,0 +1,67 @@
+name: Extract Project ZIP
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract ZIP to temporary directory
+        run: |
+          rm -rf /tmp/project-extract
+          mkdir -p /tmp/project-extract
+
+          unzip -o project.zip -d /tmp/project-extract
+
+      - name: Detect project root and copy files
+        shell: bash
+        run: |
+          set -e
+
+          EXTRACTED="/tmp/project-extract"
+
+          # যদি ZIP-এর ভিতরে শুধু একটি top-level folder থাকে,
+          # সেটাকে project root হিসেবে ব্যবহার করবে।
+          shopt -s dotglob nullglob
+          ITEMS=("$EXTRACTED"/*)
+
+          if [ "${#ITEMS[@]}" -eq 1 ] && [ -d "${ITEMS[0]}" ]; then
+            SOURCE="${ITEMS[0]}"
+          else
+            SOURCE="$EXTRACTED"
+          fi
+
+          echo "Using extracted source: $SOURCE"
+
+          # ZIP-এর content repo root-এ copy করবে।
+          # Existing files delete করবে না।
+          rsync -a "$SOURCE"/ ./ \
+            --exclude='.git/' \
+            --exclude='project.zip'
+
+      - name: Show changes
+        run: |
+          git status --short
+
+      - name: Commit extracted project
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Extract project ZIP"
+          git push

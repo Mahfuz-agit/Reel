@@ -14,52 +14,87 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Extract ZIP to temporary directory
+      - name: Check ZIP
         run: |
+          echo "Repository files:"
+          ls -la
+
+          echo ""
+          echo "ZIP files:"
+          find . -maxdepth 2 -type f -name "*.zip" -print
+
+      - name: Extract project ZIP
+        shell: bash
+        run: |
+          set -e
+
+          ZIP_FILE="./project.zip"
+
+          if [ ! -f "$ZIP_FILE" ]; then
+            echo "ERROR: $ZIP_FILE was not found."
+            exit 1
+          fi
+
           rm -rf /tmp/project-extract
           mkdir -p /tmp/project-extract
 
-          unzip -o project.zip -d /tmp/project-extract
+          echo "Extracting: $ZIP_FILE"
 
-      - name: Detect project root and copy files
+          unzip -o "$ZIP_FILE" -d /tmp/project-extract
+
+          echo ""
+          echo "Extracted files:"
+          find /tmp/project-extract -maxdepth 3 -print
+
+      - name: Copy project into repository
         shell: bash
         run: |
           set -e
 
           EXTRACTED="/tmp/project-extract"
 
-          # যদি ZIP-এর ভিতরে শুধু একটি top-level folder থাকে,
-          # সেটাকে project root হিসেবে ব্যবহার করবে।
           shopt -s dotglob nullglob
+
           ITEMS=("$EXTRACTED"/*)
 
           if [ "${#ITEMS[@]}" -eq 1 ] && [ -d "${ITEMS[0]}" ]; then
             SOURCE="${ITEMS[0]}"
+            echo "Detected top-level project folder:"
+            echo "$SOURCE"
           else
             SOURCE="$EXTRACTED"
+            echo "Using extracted directory directly."
           fi
 
-          echo "Using extracted source: $SOURCE"
+          echo ""
+          echo "Copying project files..."
 
-          # ZIP-এর content repo root-এ copy করবে।
-          # Existing files delete করবে না।
-          rsync -a "$SOURCE"/ ./ \
+          rsync -av \
+            "$SOURCE"/ \
+            ./ \
             --exclude='.git/' \
             --exclude='project.zip'
 
-      - name: Show changes
+      - name: Show final repository
         run: |
-          git status --short
+          echo "Final repository structure:"
+          find . -maxdepth 3 -type f \
+            ! -path './.git/*' \
+            ! -path './project.zip' \
+            | sort
 
-      - name: Commit extracted project
+      - name: Commit changes
+        shell: bash
         run: |
+          set -e
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add -A
 
           if git diff --cached --quiet; then
-            echo "No changes to commit."
+            echo "No changes detected."
             exit 0
           fi
 

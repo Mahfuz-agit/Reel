@@ -57,6 +57,26 @@ export function bassAt(t: number): number {
 	return interpolateSeries(AUDIO_DATA.spectral_bands, t, (p) => p.bass);
 }
 
+/**
+ * Smoothed bass — averages a short window instead of one raw sample.
+ * Raw per-frame bass jumps around at audio-rate speed and reads as
+ * flicker on screen; a ~150ms rolling average reads as a calm "breathe".
+ */
+export function smoothedBassAt(t: number, windowSeconds = 0.15): number {
+	const points = AUDIO_DATA.spectral_bands;
+	const from = t - windowSeconds;
+	let sum = 0;
+	let n = 0;
+	for (let i = floorIndexByTime(points, from); i < points.length; i++) {
+		if (points[i].time > t) break;
+		if (points[i].time >= from) {
+			sum += points[i].bass;
+			n++;
+		}
+	}
+	return n > 0 ? sum / n : bassAt(t);
+}
+
 export function midAt(t: number): number {
 	return interpolateSeries(AUDIO_DATA.spectral_bands, t, (p) => p.mid);
 }

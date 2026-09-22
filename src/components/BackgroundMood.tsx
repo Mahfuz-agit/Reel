@@ -1,6 +1,6 @@
 import React from 'react';
 import {AbsoluteFill, interpolateColors, useCurrentFrame, useVideoConfig} from 'remotion';
-import {AUDIO_DATA, bassAt, segmentIndexAt} from '../utils/audioMath';
+import {AUDIO_DATA, smoothedBassAt, segmentIndexAt} from '../utils/audioMath';
 
 // One mood color per structural segment (5 segments from structure_boundaries).
 // Deep teal/black dominates the "list of no's" tension; warm amber arrives
@@ -35,9 +35,10 @@ export const BackgroundMood: React.FC = () => {
 		[SEGMENT_COLORS[segIdx], SEGMENT_COLORS[nextIdx]]
 	);
 
-	// Bass gives the vignette a subtle "breathing" brightness.
-	const bass = bassAt(t);
-	const glow = Math.min(0.35, bass * 0.18);
+	// Bass gives the vignette a subtle "breathing" brightness — smoothed so
+	// it drifts calmly instead of flickering with every raw audio sample.
+	const bass = smoothedBassAt(t);
+	const glow = Math.min(0.22, bass * 0.14);
 
 	return (
 		<AbsoluteFill
